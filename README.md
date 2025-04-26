@@ -21,8 +21,8 @@ ManaDork is a Discord bot designed to enhance Magic: The Gathering gameplay, all
 ## Card Referencing
 
 All magic cards can be referenced in any block of text using `{{ card_name }}` or `{{ card_name [set, collector] }}`.
-> Example: " `{{Boiling Seas}}` is such a lame card.  
-> Example: "Dude, `{{swamp[ONE, 367]}}` looks insane.
+> Example: " `{{Boiling Seas}}` is such a lame card."  
+> Example: "Dude, `{{swamp[ONE, 367]}}` looks insane."
 
 
 ## Slash Commands
