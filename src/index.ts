@@ -1,20 +1,22 @@
 import {
-    Client,
     GatewayIntentBits,
     ActionRowBuilder,
     ButtonBuilder,
     ButtonStyle,
     Message,
     TextChannel,
-    Embed,
     EmbedBuilder,
     ButtonInteraction,
-    AttachmentBuilder
-} from "discord.js"
-import axios, { AxiosError } from "axios"
-import * as dotenv from "dotenv"
-import {Card} from "./Card"
-import * as util from "./util"
+    AttachmentBuilder,
+    Collection
+} from "discord.js";
+import * as path from "path";
+import { readdirSync } from "fs";
+import axios, { AxiosError } from "axios";
+import * as dotenv from "dotenv";
+import { ClientWithCommands } from "./ClientWithCommands";
+import {Card} from "./Card";
+import * as util from "./util";
 
 dotenv.config();
 
@@ -22,9 +24,18 @@ const scryfallURL = `https://api.scryfall.com/`;
 const moxfieldURL = `https://api.moxfield.com/json/decks/`;
 
 // Bot Entrypoint
-const client = new Client({
+const client = new ClientWithCommands({
     intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMessages, GatewayIntentBits.MessageContent],
 });
+
+client.commands = new Collection();
+
+const commandFiles = readdirSync(path.join(__dirname, "commands")).filter(file => file.endsWith(".ts") || file.endsWith(".js"));
+
+for (const file of commandFiles) {
+    const command = require(`./commands/${file}`);
+    client.commands.set(command.data.name, command);
+}
 
 client.once("ready", () => {
     console.log('Logged in as ${client.user?.tag}!');
@@ -99,57 +110,24 @@ client.on("messageCreate", async (message) =>{
 
         } 
     }
+});
 
-    if(message.content.startsWith("!deck")) {
+// Command Passthrough
+client.on('interactionCreate', async interaction => {
+    if(!interaction.isChatInputCommand()) return;
 
-        const args = message.content.slice("!deck".length).trim();
-        
+    const command = client.commands.get(interaction.commandName);
 
+    if (!command) {
+        console.error(`No Command Assocaited with ${interaction.commandName}`);
+        return;
     }
 
-    if(message.content.startsWith("!help")) {
-
-        const helpEmbed = new EmbedBuilder()
-        .setTitle("**ScryBot Help**")
-        .setDescription("The following is a list of commands and how to use them!")
-        .addFields(
-            {
-                name: "!card <card_name>",
-                value: "Attempts to find a card on Scryfall that matches <card_name>; The name needs to be accurate enough to remove ambiguity among similar card names.\nExample: `!card Abrade`"
-            },
-            {
-                name: "!card <card_name>[set_number, collector_number]",
-                value: "Attemps to find the specific printing of <card_name> on Scryfall that matches [set_number, collector_number]\nExample: `!card swamp[ONE, 367]`"
-            },
-            {
-                name: "!help",
-                value: "Displays this help pannel."
-            },
-            {
-                name:"The Following are flags to be added behind the above commands (besides !help).",
-                value: "They will display specifically requested information regarding the card retrieved with `!card!`\nExample: `!card Sol Ring /legalities"
-            },
-            {
-                name:"/legalities",
-                value: "Displays only the legalitiy of <card> in all Magic: The Gathering Formats\nExample: `!card <card_name> /legalities` or `!card <card_name>[set_number, collector_number] /legalities`"
-            },
-            {
-                name: "/rulings",
-                value: "Displays only the 5 most recent offical rulings regarding <card>\nExample: `!card <card_name> /rulings` or `!card <card_name>[set_number, collector_number] /rulings`"
-            },
-            {
-                name: "/sets",
-                value: "Displays all Magic: The Gathering sets in which <card> appears.\nExample: `!card <card_name> /sets` or `!card <card_name>[set_number, collector_number] /sets`"
-            },
-        )
-        .setFooter({ text: "End of !help"})
-        .setColor(0x7c4c2e)
-        .setThumbnail("attachment://scrybot.png");
-
-        await message.channel.send({
-            embeds: [helpEmbed],
-            files: [{ attachment:"./assets/thumbnail/scrybot.png", name: "scrybot.png"}]
-        });
+    try {
+        await command.execute(interaction);
+    } catch (error) {
+        console.error(error);
+        await interaction.reply({ content: `There was an error executing ${command}`});
     }
 });
 
