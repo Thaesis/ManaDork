@@ -1,2 +1,2 @@
 # ManaDork
-![ManaDork](assets/thumbnail/scrybot.png)
+<img src="assets/thumbnail/scrybot.png" alt="ManaDork" width="400"/>
