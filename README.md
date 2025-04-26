@@ -27,13 +27,14 @@ All magic cards can be referenced in any block of text using `{{ card_name }}` o
 
 ## Slash Commands
 
+(Optional) private: an optional boolean for privacy if just the user wants to see the response from the bot.
+
 | Command | Description |
 |:--|:--|
-| `/rulings <name>` | Displays the 5 most recent offical rulings pertaining to a given card. |
-|`/legal <name>` | Displays the legality of a given card for all formats of Magic: the Gathering.|
-|`/sets <name>` | Displays the sets in which a given card is included in Magic: the Gathering.|
-| `/keyword <name>` | Displays the mechanics associated with a Magic: The Gathering keyword. |
-| `/keyword <name> [private: true/false]` | (Optional) Display the keyword info privately (only visible to you). |
+| `/rulings <name> [private: true/false]` | Displays the 5 most recent offical rulings pertaining to a given card. |
+|`/legal <name> [private: true/false]` | Displays the legality of a given card for all formats of Magic: the Gathering.|
+|`/sets <name> [private: true/false]` | Displays the sets in which a given card is included in Magic: the Gathering.|
+| `/keyword <name> [private: true/false]` | Displays the mechanics associated with a Magic: The Gathering keyword. |
 
 > Example: `/keyword flying`
 
