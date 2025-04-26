@@ -17,35 +17,31 @@ export async function execute(interaction: ChatInputCommandInteraction) {
                 .setDescription("The following is a list of commands and how to use them!")
                 .addFields(
                     {
-                        name: "!card <card_name>",
-                        value: "Attempts to find a card on Scryfall that matches <card_name>; The name needs to be accurate enough to remove ambiguity among similar card names.\nExample: `!card Abrade`"
+                        name: "{{ card_name }} or {{ card_name[SET, Collector#] }}",
+                        value: "Attempts to find a card on Scryfall that matches <card_name>; The name needs to be accurate enough to remove ambiguity among similar card names. It can also be used to pull specific printings of a card.\nExample: `{{Abrade}}`\nExample:  Woah! Look at this `{{ swamp[ONE, 367] }}`"
                     },
                     {
-                        name: "!card <card_name>[set_number, collector_number]",
-                        value: "Attemps to find the specific printing of <card_name> on Scryfall that matches [set_number, collector_number]\nExample: `!card swamp[ONE, 367]`"
-                    },
-                    {
-                        name: "!help",
+                        name: "/help",
                         value: "Displays this help pannel."
                     },
                     {
-                        name:"The Following are flags to be added behind the above commands (besides !help).",
-                        value: "They will display specifically requested information regarding the card retrieved with `!card!`\nExample: `!card Sol Ring /legalities"
-                    },
+                        name:"/legal <card_name> (optional)private: true/false",
+                        value: "Displays only the legalitiy of <card_name> in all Magic: The Gathering Formats\nExample: `/legal Amber Mox`"
+                    }, 
                     {
-                        name:"/legalities",
-                        value: "Displays only the legalitiy of <card> in all Magic: The Gathering Formats\nExample: `!card <card_name> /legalities` or `!card <card_name>[set_number, collector_number] /legalities`"
-                    },
-                    {
-                        name: "/rulings",
-                        value: "Displays only the 5 most recent offical rulings regarding <card>\nExample: `!card <card_name> /rulings` or `!card <card_name>[set_number, collector_number] /rulings`"
+                        name: "/rulings <card_name> (optional)private: true/false",
+                        value: "Displays only the 5 most recent offical rulings regarding <card_name>\nExample: `/rulings Derevi, Empyrial Tactician`"
                     },
                     {
                         name: "/sets",
-                        value: "Displays all Magic: The Gathering sets in which <card> appears.\nExample: `!card <card_name> /sets` or `!card <card_name>[set_number, collector_number] /sets`"
+                        value: "Displays all Magic: The Gathering sets in which <card_name> appears.\nExample: `/sets Sol Ring`"
                     },
+                    {
+                        name: "/keyword <keyword_name>",
+                        value: "Displays the rules assocaited with a given keyword.\nExample: `/keyword Banding`"
+                    }
                 )
-                .setFooter({ text: "End of !help"})
+                .setFooter({ text: "End of /help"})
                 .setColor(0x7c4c2e)
                 .setThumbnail("attachment://scrybot.png");
 
