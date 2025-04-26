@@ -2,7 +2,8 @@ import {
     SlashCommandBuilder,
     ChatInputCommandInteraction,
     AttachmentBuilder,
-    EmbedBuilder
+    EmbedBuilder,
+    MessageFlags
 } from "discord.js"
 
 export const data = new SlashCommandBuilder()
@@ -47,10 +48,10 @@ export async function execute(interaction: ChatInputCommandInteraction) {
                 .setFooter({ text: "End of !help"})
                 .setColor(0x7c4c2e)
                 .setThumbnail("attachment://scrybot.png");
-    
+
             await interaction.reply({
                 embeds: [helpEmbed],
                 files: [{ attachment:"./assets/thumbnail/scrybot.png", name: "scrybot.png" }],
-                ephemeral: true
+                flags: MessageFlags.Ephemeral
             });
 }

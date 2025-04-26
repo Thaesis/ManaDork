@@ -16,11 +16,12 @@ import axios, { AxiosError } from "axios";
 import * as dotenv from "dotenv";
 import { ClientWithCommands } from "./ClientWithCommands";
 import {Card} from "./Card";
-import * as util from "./util";
+import * as util from "./util/util";
+import { fetchCard } from "./util/fetchCard";
+import { buildCardAttachments } from "./util/CardUtil";
 
 dotenv.config();
 
-const scryfallURL = `https://api.scryfall.com/`;
 const moxfieldURL = `https://api.moxfield.com/json/decks/`;
 
 // Bot Entrypoint
@@ -28,6 +29,7 @@ const client = new ClientWithCommands({
     intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMessages, GatewayIntentBits.MessageContent],
 });
 
+// Command registration
 client.commands = new Collection();
 
 const commandFiles = readdirSync(path.join(__dirname, "commands")).filter(file => file.endsWith(".ts") || file.endsWith(".js"));
@@ -41,76 +43,48 @@ client.once("ready", () => {
     console.log('Logged in as ${client.user?.tag}!');
 });
 
-client.on("messageCreate", async (message) =>{
+// Chat command handling
+client.on("messageCreate", async (message) => {
     if (message.author.bot) return;
 
-    if(message.content.startsWith("!card")) {
+    const matches = [...message.content.matchAll(/\{\{(.+?)\}\}/g)];
 
-        const args = message.content.slice("!card".length).trim();
+    if(matches.length === 0) return;
 
-        const flags: string[] = args.match(/\/\w+/g) ?? [];
-        const cleanArgs = args.replace(/\/\w+/g, "").trim();
+    if (matches.length > 5) {
+        await message.reply("⚠️ Users may only reference up to 5 cards at a time.");
+        return;
+     }
 
-        //Matching for Specific Pritings
-        const specificPrintingRegex = /^(.+?)\[(\w{2,5}),\s*(\d+)\]$/;
-        const match = cleanArgs.match(specificPrintingRegex);
+    for (const match of matches) {
+
+        const rawContent = match[0].trim();
 
         try{
 
-            let card: Card;
+            const card = await fetchCard(rawContent);
 
-            if (match) {
-                const [_, name, setCode, collectorNumber] = match;
-                const url = `${scryfallURL}cards/${setCode.toLowerCase()}/${collectorNumber}`
-                const response = await util.throttledAxios(url);
-                card = new Card(response.data);
-            } else {
-                const response = await util.throttledAxios(`${scryfallURL}cards/named?fuzzy=${encodeURIComponent(cleanArgs)}`);
-                card = new Card(response.data);
-            }
+            await message.channel.send({
+                embeds: [card.getEmbed(util.EmbedType.Default)],
+                files: await buildCardAttachments(card)
+            });
 
-            if(flags.includes("/legalities")) {
-
-                await message.channel.send({ 
-                    embeds: [card.getEmbed(util.EmbedType.Legalities)], 
-                    files: await getCardAttachments(card)
-                });
-
-            } else if(flags.includes("/sets")) {
-
-                await card.loadPrintings();
-                await sendPaginatedSetEmbed(message, card);
-
-            } else if (flags.includes("/rulings")) {
-
-                await card.loadRulings();
-                await message.channel.send({ 
-                    embeds: [card.getEmbed(util.EmbedType.Rulings)],
-                    files: await getCardAttachments(card)
-                });
-
-            } else {
-
-                await message.channel.send({
-                    embeds: [card.getEmbed(util.EmbedType.Default)],
-                    files: await getCardAttachments(card)
-                });
-
-            }
-            
         } catch (error) {
-            
+
             if(axios.isAxiosError(error) && error.response?.data?.object === "error") {
                 const apiError = error.response.data;
                 await message.channel.send(`:x: **SCryfall**: ${apiError.details}`);
-            } else {
-                console.error(error);
-                await message.channel.send(`:warning: An unexpected error occurred while fetching ${Card.name}. For more information, use \`!help\``);
-            }
 
-        } 
-    }
+            } else {
+
+                console.error(error);
+                await message.channel.send(`:warning: An unexpected error occurred while fetching card **${rawContent}**.`);
+
+            }
+        }
+    }   
 });
+
 
 // Command Passthrough
 client.on('interactionCreate', async interaction => {
@@ -129,76 +103,6 @@ client.on('interactionCreate', async interaction => {
         console.error(error);
         await interaction.reply({ content: `There was an error executing ${command}`});
     }
-});
-
-async function sendPaginatedSetEmbed(message: Message, card: Card) {
-        let currentPage = 1;
-        const perPage = 20;
-
-        const generateEmbed = (page: number): EmbedBuilder => {
-            return card.getSetEmbed(page, perPage);
-        };
-
-        const row = () =>
-         new ActionRowBuilder<ButtonBuilder>().addComponents(
-            new ButtonBuilder()
-                .setCustomId('prev')
-                .setLabel('⬅️ Previous')
-                .setStyle(ButtonStyle.Secondary),
-            new ButtonBuilder()
-                .setCustomId('next')
-                .setLabel('Next ➡️')
-                .setStyle(ButtonStyle.Secondary)
-        );
-
-        const sentMessage = await (message.channel as TextChannel).send({
-            embeds: [generateEmbed(currentPage)],
-            components: [row()],
-            files: await getCardAttachments(card)
-        })
-
-        const collector = sentMessage.createMessageComponentCollector({
-            time: 60_000
-        });
-
-        collector.on("collect", async (interaction: ButtonInteraction) => {
-
-            if (interaction.customId === "next") currentPage++;
-            if (interaction.customId === "prev") currentPage--;
-
-            const maxPage = Math.ceil(card.printings.length / perPage);
-            currentPage = Math.max(1, Math.min(currentPage, maxPage));
-
-            await interaction.update({
-                embeds: [generateEmbed(currentPage)],
-                components: [row()],
-                files: await getCardAttachments(card)
-            });
-        });
-
-        collector.on("end", async () => {
-            const disabledRow = new ActionRowBuilder<ButtonBuilder>().addComponents(
-                ...row().components.map(button => ButtonBuilder.from(button).setDisabled(true))
-            );
-
-            await sentMessage.edit({
-                components: [disabledRow]
-            });
-        });
-
-    }   
-
-async function getCardAttachments(card: Card): Promise<AttachmentBuilder[]> {
-
-    const attachments: AttachmentBuilder[] = [
-        new AttachmentBuilder("./assets/thumbnail/scryfall.png", { name: "scryfall.png" })
-    ];
-
-    if (card.isTwoSided()) {
-        attachments.push(await card.fetchMergedAttachment());
-    }
-
-    return attachments;
-}
+}); 
 
 client.login(process.env.DISCORD_TOKEN);

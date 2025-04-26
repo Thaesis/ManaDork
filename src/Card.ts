@@ -4,7 +4,7 @@ import {
     EmbedBuilder, 
     
 } from "discord.js";
-import * as util from "./util"
+import * as util from "./util/util"
 
 export class Card {
     name: string;
@@ -160,85 +160,55 @@ export class Card {
     }
 
     getEmbed(type: util.EmbedType = util.EmbedType.Default): EmbedBuilder {
+        const fields = [];
 
-        switch (type) {
-            case util.EmbedType.Legalities:
-                return new EmbedBuilder()
-                    .setTitle(this.name)
-                    .setURL(this.link)
-                    .setImage(this.fetchImage())
-                    .setThumbnail("attachment://scryfall.png")
-                    .setDescription(this.getLegalities())
-                    .setColor(0xb08ee8)
-                    .setFooter({ text: "All information is provided by Scryfall."})
-            
-            case util.EmbedType.Rulings:
-
-                const rulings = this.getRulings().slice(0,5).join('\n') || `No Rulings Found for **${this.name}**`;
-
-                return new EmbedBuilder()
-                    .setTitle(this.name)
-                    .setURL(this.link)
-                    .setImage(this.fetchImage())
-                    .setThumbnail("attachment://scryfall.png")
-                    .setDescription(rulings)
-                    .setColor(0xb08ee8)
-                    .setFooter({ text: "All information is provided by Scryfall."})
-
-            case util.EmbedType.Default:
-            default:
-
-                const fields = [];
-                
-                if(this.gameChanger) {
-                    fields.push({
-                        name: `**Game Changer**: :white_check_mark:`,
-                        value: ""
-                    });
-                } else {
-                    fields.push({
-                        name: `**Game Changer**: :x:`,
-                        value: ""
-                    });
-                }
-
-                const bannedList = this.getBannedFormats();
-
-                if(bannedList.length > 0) {
-                    fields.push({
-                        name: ":bangbang: Banned Card!",
-                        value: `${bannedList.map(format => `• ${format}`).join('\n')}`
-                    });
-                }
-
-                if(this.keywords.length > 0) {
-                    fields.push({
-                        name: `**Keywords**: ${this.getKeywords()}`,
-                        value: ""
-                    });
-                }
-
-                // Set information
-                fields.push({
-                    name: `**Set**: *${this.setName} (${this.set.toUpperCase()})*`,
-                    value: ""
-                })
-
-                fields.push({
-                    name: `**Price Summary**`,
-                    value: `:dollar: *USD*: $${this.usd ?? "N/A"}     :sparkles: *Foil*: $${this.usdFoil ?? "N/A"} \n :euro: *EUR*: €${this.eur ?? "N/A"}     :sparkles: *Foil* €${this.eurFoil ?? "N/A"}:`
-                })
-
-                return new EmbedBuilder()
-                    .setTitle(this.name)
-                    .setURL(this.link)
-                    .setImage(this.fetchImage())
-                    .setThumbnail("attachment://scryfall.png")
-                    .setDescription(`Information for ${this.name}`)
-                    .addFields(fields)
-                    .setColor(0xb08ee8)
-                    .setFooter({ text: "All information is provided by Scryfall. Prices may not reflect current market value."});     
+        if (this.gameChanger) {
+            fields.push({
+                name: `**Game Changer**: :white_check_mark:`,
+                value: ""
+            });
+        } else {
+            fields.push({
+                name: `**Game Changer**: :x:`,
+                value: ""
+            });
         }
-    }
 
+        const bannedList = this.getBannedFormats();
+
+        if (bannedList.length > 0) {
+            fields.push({
+                name: ":bangbang: Banned Card!",
+                value: `${bannedList.map(format => `• ${format}`).join('\n')}`
+            });
+        }
+
+        if (this.keywords.length > 0) {
+            fields.push({
+                name: `**Keywords**: ${this.getKeywords()}`,
+                value: ""
+            });
+        }
+
+        // Set information
+        fields.push({
+            name: `**Set**: *${this.setName} (${this.set.toUpperCase()})*`,
+            value: ""
+        })
+
+        fields.push({
+            name: `**Price Summary**`,
+            value: `:dollar: *USD*: $${this.usd ?? "N/A"}     :sparkles: *Foil*: $${this.usdFoil ?? "N/A"} \n :euro: *EUR*: €${this.eur ?? "N/A"}     :sparkles: *Foil* €${this.eurFoil ?? "N/A"}:`
+        })
+
+        return new EmbedBuilder()
+            .setTitle(this.name)
+            .setURL(this.link)
+            .setImage(this.fetchImage())
+            .setThumbnail("attachment://scryfall.png")
+            .setDescription(`Information for ${this.name}`)
+            .addFields(fields)
+            .setColor(0xb08ee8)
+            .setFooter({ text: "All information is provided by Scryfall. Prices may not reflect current market value." });
+    }
 }
