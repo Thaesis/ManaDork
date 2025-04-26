@@ -11,7 +11,7 @@ ManaDork is a Discord bot designed to enhance Magic: The Gathering gameplay, all
 ---
 
 ## Features
-- `/keyword` command to fetch keyword rules and descriptions
+- Discord `/` commands to facilitate ease-of-use.
 - Fuzzy search (handles typos and partial matches)
 - Option to display responses privately
 - Powered by Scryfall API
