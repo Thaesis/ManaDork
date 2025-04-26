@@ -4,13 +4,23 @@ import {
     MessageFlags,
     EmbedBuilder,
 } from "discord.js"
-import { fetchCard } from "../util/fetchCard";
 import { buildCardAttachments } from "../util/CardUtil";
 import keywordData from '../../assets/keywords/all_keywords_full.json';
+import Fuse from "fuse.js"
+
+interface KeyworkEntry {
+    keyword: string;
+    description: string;
+}
+
+const fuse = new Fuse<KeyworkEntry>(keywordData as KeyworkEntry[], {
+    keys: ['keyword'],
+    threshold: 0.3
+});
 
 export const data = new SlashCommandBuilder()
     .setName('keyword')
-    .setDescription("Displays the rules associated with a given Magic: the Gathering keyword.")
+    .setDescription("Displays the mechanics associated with a given Magic: the Gathering keyword.")
     .addStringOption(option =>
         option.setName(`name`)
             .setDescription(`Name of the keyword`)
@@ -32,7 +42,9 @@ export async function execute(interaction: ChatInputCommandInteraction) {
         .map(word => word.charAt(0).toUpperCase() + word.slice(1))
         .join(' ');
     
-    const match = keywordData.find(entry => entry.keyword === keywordInput);
+
+    const results = fuse.search(titleCasedKeyword);
+    const match = results.length > 0 ? results[0].item : null;
 
     let descrption: string;
 
@@ -43,7 +55,7 @@ export async function execute(interaction: ChatInputCommandInteraction) {
     }
 
     const cardEmbed = new EmbedBuilder()
-                        .setTitle(titleCasedKeyword)
+                        .setTitle(match ? match.keyword : titleCasedKeyword)
                         .setThumbnail("attachment://scryfall.png")
                         .setDescription(descrption)
                         .setColor(0xb08ee8)

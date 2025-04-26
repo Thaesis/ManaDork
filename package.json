@@ -4,6 +4,7 @@
     "bottleneck": "^2.19.5",
     "discord.js": "^14.18.0",
     "dotenv": "^16.5.0",
+    "fuse.js": "^7.1.0",
     "sharp": "^0.34.1"
   },
   "devDependencies": {
@@ -12,12 +13,12 @@
     "ts-node": "^10.9.2",
     "typescript": "^5.8.3"
   },
-    "name": "manadork",
-    "version": "1.0.0",
-    "bin": "bot.js",
-    "pkg": {
-        "targets": [
-            "node18-win-x64"
-        ]
-    }
+  "name": "manadork",
+  "version": "1.0.0",
+  "bin": "bot.js",
+  "pkg": {
+    "targets": [
+      "node18-win-x64"
+    ]
+  }
 }
