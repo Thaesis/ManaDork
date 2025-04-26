@@ -49,24 +49,28 @@ export async function execute(interaction: ChatInputCommandInteraction) {
     let descrption: string;
 
     if(match) {
-        descrption = `**${match.description}**`
+        descrption = `*${match.description}*`
     } else {
         descrption = `:x: No Keyword Associated with "${titleCasedKeyword}"`
     }
 
     const cardEmbed = new EmbedBuilder()
-                        .setTitle(match ? match.keyword : titleCasedKeyword)
-                        .setThumbnail("attachment://scryfall.png")
+                        .setTitle(match
+                            ? match.keyword
+                                .toLowerCase()
+                                .split(' ')
+                                .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+                                .join(' ')
+                            : titleCasedKeyword)
+                        .setThumbnail("attachment://scrybot.png")
                         .setDescription(descrption)
-                        .setColor(0xb08ee8)
-                        .setFooter({ text: "All information is provided by Scryfall."})
+                        .setColor(0x7c4c2e)
                         
-    const files = await buildCardAttachments();
     const flags = displayPrivately ? MessageFlags.Ephemeral : undefined;
 
     await interaction.reply({
         embeds: [cardEmbed], 
-        files: files,
+        files: [{ attachment:"./assets/thumbnail/scrybot.png", name: "scrybot.png" }],
         flags: flags
     });
 }
