@@ -32,7 +32,7 @@ export async function execute(interaction: ChatInputCommandInteraction) {
         .setTitle(card.name)
         .setURL(card.link)
         .setImage(card.fetchImage())
-        .setThumbnail("attchment://scryfall.png")
+        .setThumbnail("attachment://scryfall.png")
         .setDescription(sets.join('\n'))
         .setColor(0xb08ee8)
         .setFooter({ text: "All information is provided by Scryfall."})
