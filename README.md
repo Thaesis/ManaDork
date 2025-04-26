@@ -1,2 +1,2 @@
 # ManaDork
-![ManaDork](assets/scrybot.png)
+![ManaDork](assets/thumbnail/scrybot.png)
