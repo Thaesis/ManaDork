@@ -24,7 +24,7 @@ export async function fetchCard(rawContent: string): Promise<Card> {
         return new Card(response.data);
 
     } else {
-        
+
         const url = `${scryfallURL}cards/named?fuzzy=${encodeURIComponent(rawContent)}`;
         const response = await util.throttledAxios(url);
         return new Card(response.data);

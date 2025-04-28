@@ -1,5 +1,5 @@
 import Bottleneck from "bottleneck";
-import axios, {AxiosRequestConfig} from "axios";
+import axios, { AxiosRequestConfig } from "axios";
 import sharp from "sharp"
 
 export enum EmbedType {
@@ -23,7 +23,7 @@ export function formatName(format: string): string {
 }
 
 export async function combineCardImages(imageFrontURI: string, imageBackURI: string): Promise<Buffer> {
-    
+
     const [front, back] = await Promise.all([
         throttledAxios(imageFrontURI, { responseType: 'arraybuffer' }),
         throttledAxios(imageBackURI, { responseType: 'arraybuffer' })
@@ -43,12 +43,12 @@ export async function combineCardImages(imageFrontURI: string, imageBackURI: str
             background: { r: 0, g: 0, b: 0, alpha: 0 }
         }
     })
-    .composite([
-        { input: await frontImage.toBuffer(), left: 0, top: 0},
-        { input: await backImage.toBuffer(), left: frontMeta.width ?? 0, top: 0}
-    ])
-    .png()
-    .toBuffer();
+        .composite([
+            { input: await frontImage.toBuffer(), left: 0, top: 0 },
+            { input: await backImage.toBuffer(), left: frontMeta.width ?? 0, top: 0 }
+        ])
+        .png()
+        .toBuffer();
 
     return buffer;
 }

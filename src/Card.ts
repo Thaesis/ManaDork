@@ -1,8 +1,8 @@
-import { 
+import {
     Attachment,
     AttachmentBuilder,
-    EmbedBuilder, 
-    
+    EmbedBuilder,
+
 } from "discord.js";
 import * as util from "./util/util"
 
@@ -37,15 +37,15 @@ export class Card {
         // Handling single/double faced cards
         if (data.card_faces?.length === 2) {
             this.image_front = data.card_faces[0]?.image_uris?.normal ?? "";
-            this.image_back  = data.card_faces[1]?.image_uris?.normal ?? "";
+            this.image_back = data.card_faces[1]?.image_uris?.normal ?? "";
         } else {
             // Single-faced card
             this.image_front = data.image_uris?.normal ?? "";
-            this.image_back  = "";
+            this.image_back = "";
         }
 
         this.image_filename = "";
-        this.text = 
+        this.text =
             data.printed_text ??
             data.oracle_text ??
             data.card_faces?.[0]?.printed_text ??
@@ -69,7 +69,7 @@ export class Card {
 
         const printings: any[] = [];
         let uri = this.printsSearchUri;
-        
+
         while (uri) {
             const res = await fetch(uri);
             const json = await res.json();
@@ -89,10 +89,10 @@ export class Card {
     async fetchMergedAttachment(): Promise<AttachmentBuilder> {
         const buffer = await util.combineCardImages(this.image_front, this.image_back);
         const fileName = `${this.name.replace(/\s+/g, "_")}.png`;
-        console.log(`Name:${this.name}, Filename:${fileName}`); 
+        console.log(`Name:${this.name}, Filename:${fileName}`);
         this.image_filename = fileName;
         return new AttachmentBuilder(buffer, { name: fileName });
-    }   
+    }
 
     getLegalities(): string {
         return Object.entries(this.legalities)
@@ -102,7 +102,7 @@ export class Card {
 
     getIllegalFormats(): string {
         return Object.entries(this.legalities)
-            .filter(([_, status]) => status === "not_legal" || status === "banned" || status === "restricted") 
+            .filter(([_, status]) => status === "not_legal" || status === "banned" || status === "restricted")
             .map(([format, status]) => `${format}: ${status}`)
             .join("\n");
     }
@@ -126,7 +126,7 @@ export class Card {
 
     fetchImage(): string {
 
-        if(!this.image_back) {
+        if (!this.image_back) {
             return this.image_front;
         } else {
             console.log(`${this.image_front}, ${this.image_back}, ${this.image_filename}`)
@@ -150,13 +150,13 @@ export class Card {
 
     getSetEmbed(page: number, perPage = 20): EmbedBuilder {
         const { entries, currentPage, totalPages } = this.paginatePrintings(page, perPage);
-            return new EmbedBuilder()
-                .setTitle(`Printings of ${this.name}`)
-                .setImage(this.fetchImage())
-                .setThumbnail("attachment://scryfall.png")
-                .setDescription(entries.join('\n') || 'No printings found.')
-                .setColor(0xb08ee8)
-                .setFooter({ text: `Page ${currentPage} of ${totalPages}` });
+        return new EmbedBuilder()
+            .setTitle(`Printings of ${this.name}`)
+            .setImage(this.fetchImage())
+            .setThumbnail("attachment://scryfall.png")
+            .setDescription(entries.join('\n') || 'No printings found.')
+            .setColor(0xb08ee8)
+            .setFooter({ text: `Page ${currentPage} of ${totalPages}` });
     }
 
     getEmbed(type: util.EmbedType = util.EmbedType.Default): EmbedBuilder {
